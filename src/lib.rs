@@ -287,7 +287,7 @@ impl State {
 
         if self.frame_number == 1 {println!("Create");}
 
-        if self.frame_number <= 4 {
+        if self.frame_number <= 5 {
 
             let mut function_result = function::orbital(self.function_index, &self.faces, self.a);
 
@@ -300,9 +300,6 @@ impl State {
             //println!("Index: {:?}", self.function_index);
 
         }
-
-        
-
         if self.frame_number == 5 {
 
             println!("Data");
@@ -320,12 +317,14 @@ impl State {
 
             self.instances.append(&mut self.new_instances);
 
+            println!("{:?}", self.instances.len());
+
             self.instance_buffer = self.device.create_buffer_init(&BufferInitDescriptor {
                 label: Some("Instance Buffer"),
                 contents: bytemuck::cast_slice(&self.instance_data) ,
                 usage: wgpu::BufferUsages::VERTEX,
             });
-            self.a += 0.1; 
+            //self.a += 0.75; 
         }
 
         if self.frame_number == 6 {

@@ -1,12 +1,12 @@
 
 //RESOLUTION – Inverse of the size of every individual voxel. CANNOT be 1 or less
-pub const RES: f32 = 6.0;
+pub const RES: f32 = 5.0;
 
 //LENGTH – The length of the side of the bounding box where the functions are drawn
 pub const LENGTH: i16 = 7;
 
 //THRESHOLD – The orbital's threshold
-pub const THRESHOLD: f32 = 0.0001;
+pub const THRESHOLD: f32 = 0.0003;
 
 //VERTEX STUFF
 #[repr(C)]

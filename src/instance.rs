@@ -1,7 +1,7 @@
 
 use cgmath::{Vector3, Quaternion, Matrix4, Rotation3, Deg};
 
-use crate::voxel::{RES};
+use crate::{voxel::{RES}};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Instance {
@@ -61,7 +61,7 @@ impl InstanceRaw {
 }
 
 //Creates voxels in a specified x, y, z coordinate face by face.
-    pub fn instantiate(x: i16, y: i16, z: i16, a: f32, faces: &Vec<(i16, i16, i16)>) -> Vec<Instance> {
+    pub fn instantiate(x: i16, y: i16, z: i16, a: f32, x_faces: &Vec<(i16, i16, i16)>, y_faces: &Vec<(i16, i16, i16)>, z_face: bool) -> Vec<Instance> {
 
         //Creates an array of faces that will then be instanced
         let mut voxels: Vec<Instance> = Vec::with_capacity(3);
@@ -88,7 +88,7 @@ impl InstanceRaw {
         //These are only instantiated when the negative neighboring coordinate doesn't have a primary face already
         //(so, when the negative neighbour is empty).
             //LEFT
-                match faces.binary_search(&(x - 1, y, z)) {
+                match x_faces.binary_search(&(x - 1, y, z)) {
                     Ok(_) => {}
 
                     Err(_) => {
@@ -96,10 +96,10 @@ impl InstanceRaw {
                                 rotation: Quaternion::from_axis_angle(Vector3::unit_z(), Deg(90.0)),
                                 color: [1.0, 0.7, 0.0, a]});
                     }
-                }
+                } 
 
             //DOWN
-                match faces.binary_search(&(x, y - 1, z)) {
+                match y_faces.binary_search(&(x, y - 1, z)) {
                     Ok(_) => {}
 
                     Err(_) => {
@@ -110,15 +110,12 @@ impl InstanceRaw {
                 }
 
             //BACK
-                match faces.binary_search(&(x, y, z - 1)) {
-                    Ok(_) => {}
-
-                    Err(_) => {
+                if z_face == false{
                         voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / RES - 0.5, (y as f32 + 0.5) / RES - 0.5, (z as f32) / RES - 0.5),
                                 rotation: Quaternion::from_axis_angle(Vector3::unit_x(), Deg(90.0)),
                                 color: [1.0, 0.7, 0.0, a]});
-                    }
                 }
+                
 
         return voxels;
     }
