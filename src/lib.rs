@@ -37,7 +37,7 @@ struct State {
     function_index: i16,
     instance_data: Vec<InstanceRaw>,
     instance_buffer: Buffer,
-    frame_number: u32,
+    ddt: f32,
     a: f32,
 }
 
@@ -220,7 +220,7 @@ impl State {
             usage: wgpu::BufferUsages::VERTEX,
         });
 
-        let frame_number = 0;
+        let ddt = 0.0;
 
         Self {
             surface,
@@ -244,7 +244,7 @@ impl State {
             function_index,
             instance_data,
             instance_buffer,
-            frame_number,
+            ddt,
             a,
         }
     }
@@ -279,41 +279,46 @@ impl State {
     //UPDATE THING
     fn update(&mut self, dt: std::time::Duration) {
 
-        self.frame_number += 1;
+        let start = instant::Instant::now();
+
+        self.ddt += dt.as_secs_f32();
+
+        println!("Current index: {:?}", self.function_index);
 
         self.camera_controller.update_camera(&mut self.camera, dt);
         self.camera_uniform.update_view_proj(&self.camera);
         self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
 
-        if self.frame_number == 1 {println!("Create");}
+        if self.function_index == -LENGTH * RES as i16 {println!("
+        Create");}
 
-        if self.frame_number <= 5 {
+        if self.function_index < LENGTH * RES as i16 {
 
             let mut function_result = function::orbital(self.function_index, &self.faces, self.a);
 
             self.new_instances.append(&mut function_result.0);
             self.function_index = function_result.1;
             self.faces = function_result.2;
-
-            //println!("{:?}", self.new_instances.len());
-            //println!("Faces: {:?}", self.faces.len());
-            //println!("Index: {:?}", self.function_index);
-
         }
-        if self.frame_number == 5 {
 
-            println!("Data");
+        if self.function_index == LENGTH * RES as i16 + 1{
+
+            println!("
+            Data");
 
             self.instance_data = self.new_instances.iter().map(instance::Instance::to_raw).collect::<Vec<_>>();
+            println!("Commit Time: {:?}", instant::Instant::now() - start);
             
         }
-        if self.frame_number == 6 {
+        
+        if self.function_index == LENGTH * RES as i16 + 1{
             
-            println!("Commit");
+            println!("
+            Commit");
 
-            self.instances = vec![];
+            self.instances.clear();
 
-            self.faces = vec![];
+            self.faces.clear();
 
             self.instances.append(&mut self.new_instances);
 
@@ -324,14 +329,21 @@ impl State {
                 contents: bytemuck::cast_slice(&self.instance_data) ,
                 usage: wgpu::BufferUsages::VERTEX,
             });
-            //self.a += 0.75; 
+
+            self.a += 5.0 * self.ddt; 
+            self.ddt = 0.0;
         }
 
-        if self.frame_number == 6 {
+        if self.function_index == LENGTH * RES as i16 + 1{
 
             self.function_index = -LENGTH * RES as i16;
-            self.frame_number = 0;
         }
+
+        if self.function_index == LENGTH * RES as i16 {
+            println!("Instance Time: {:?}", instant::Instant::now() - start);
+            self.function_index += 1;
+        }  
+
         
     }
 
@@ -425,7 +437,7 @@ pub async fn run() {
             Event::RedrawRequested(window_id) if window_id == window.id() => {
                 let now = instant::Instant::now();
                 let dt = now - last_render_time;
-                println!("{:?}", dt);
+                println!("* {:?}", dt);
                 last_render_time = now;
                 match state.render() {
                     Ok(_) => {}

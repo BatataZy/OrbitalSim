@@ -61,7 +61,7 @@ impl InstanceRaw {
 }
 
 //Creates voxels in a specified x, y, z coordinate face by face.
-    pub fn instantiate(x: i16, y: i16, z: i16, a: f32, x_faces: &Vec<(i16, i16, i16)>, y_faces: &Vec<(i16, i16, i16)>, z_face: bool) -> Vec<Instance> {
+    pub fn instantiate(x: i16, y: i16, z: i16, a: f32, x_faces: &Vec<(i16, i16, i16)>, y_faces: &Vec<(i16, i16)>, z_face: bool) -> Vec<Instance> {
 
         //Creates an array of faces that will then be instanced
         let mut voxels: Vec<Instance> = Vec::with_capacity(3);
@@ -99,7 +99,7 @@ impl InstanceRaw {
                 } 
 
             //DOWN
-                match y_faces.binary_search(&(x, y - 1, z)) {
+                match y_faces.binary_search(&(y - 1, z)) {
                     Ok(_) => {}
 
                     Err(_) => {
