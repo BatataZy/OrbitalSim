@@ -1,8 +1,10 @@
 # Orbital Simulation
 A tool that simulates the shape and characteristics of atomic orbitals.
+<br />
 ![preview image](images/preview.png)
 
 It features an integrated GUI from which you can change the simulation:
+<br />
 ![gui](images/gui_example.png)
 
 ## License
