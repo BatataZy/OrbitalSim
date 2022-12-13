@@ -1,6 +1,4 @@
-
-//RESOLUTION – Inverse of the size of every individual voxel. CANNOT be 1 or less
-pub const RES: f32 = 5.0;
+use egui_wgpu::wgpu;
 
 //LENGTH – The length of the side of the bounding box where the functions are drawn
 pub const LENGTH: i16 = 7;
@@ -16,8 +14,8 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        wgpu::VertexBufferLayout {
+    pub fn desc<'a>() -> egui_wgpu::wgpu::VertexBufferLayout<'a> {
+        egui_wgpu::wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
@@ -31,19 +29,15 @@ impl Vertex {
     }
 }
 
-//Actually doest't generate voxels, just creates squares. Voxels are made of squares tho!
-    pub fn generate_voxel() -> Vec<Vertex> {
+//Creates the individual faces for the voxels –basically squares–.
+    pub fn generate_face(resolution: f32) -> Vec<Vertex> {
         let mut vertices: Vec::<Vertex> = vec![];
-        for x in 0..(2) {
-            for y in 0..(1) {
-                for z in 0..(2) {
-                    vertices.push(Vertex{position: [((x) as f32 / RES - 1.0/(RES * 2.0)),
-                                                    //((y) as f32 / RES - 1.0/(RES * 2.0)),
-                                                    y as f32,
-                                                    ((z) as f32 / RES - 1.0/(RES * 2.0))]});
-                }
-            }
-        }
+        for x in 0..=1 {
+        for z in 0..=1 {
+            vertices.push(Vertex{position: [(x as f32 - 0.5 )/ resolution,
+                                             0.0 as f32,
+                                            (z as f32 - 0.5 )/ resolution]});
+        }}
         return vertices;
     }
 

@@ -1,7 +1,6 @@
 
 use cgmath::{Vector3, Quaternion, Matrix4, Rotation3, Deg};
-
-use crate::{voxel::{RES}};
+use egui_wgpu::wgpu;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Instance {
@@ -24,11 +23,11 @@ impl Instance {
 }
 
 impl InstanceRaw {
-    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    pub fn desc<'a>() -> egui_wgpu::wgpu::VertexBufferLayout<'a> {
         use std::mem;
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Instance,
+        egui_wgpu::wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<InstanceRaw>() as egui_wgpu::wgpu::BufferAddress,
+            step_mode: egui_wgpu::wgpu::VertexStepMode::Instance,
             attributes: &[
                 wgpu::VertexAttribute {
                     format: wgpu::VertexFormat::Float32x4,
@@ -61,61 +60,27 @@ impl InstanceRaw {
 }
 
 //Creates voxels in a specified x, y, z coordinate face by face.
-    pub fn instantiate(x: i16, y: i16, z: i16, a: f32, x_faces: &Vec<(i16, i16, i16)>, y_faces: &Vec<(i16, i16)>, z_face: bool) -> Vec<Instance> {
+    pub fn instantiate(resolution: f32, x: i16, y: i16, z: i16, a: f32, s: f32, bias: (f32, f32, f32), ignore: (bool, bool, bool)) -> Vec<Instance> {
 
         //Creates an array of faces that will then be instanced
         let mut voxels: Vec<Instance> = Vec::with_capacity(3);
 
-        //Three primary faces: positive x, y and z. 
-        //These are always instantiated.
-            //RIGHT
-                voxels.push(Instance{position: Vector3::new((x as f32 + 1.0) / RES - 0.5, (y as f32 + 0.5) / RES - 0.5, (z as f32 + 0.5) / RES - 0.5),
+        let alpha:f32 = a;
+
+        //Instances the three faces of a voxel closest to the camera
+            //X
+                if ignore.0 == false {voxels.push(Instance{position: Vector3::new((x as f32 + 0.5 + 0.5 * bias.0) / resolution - 0.5, (y as f32 + 0.5) / resolution - 0.5, (z as f32 + 0.5) / resolution - 0.5),
                                     rotation: Quaternion::from_axis_angle(Vector3::unit_z(), Deg(90.0)),
-                                    color: [1.0, 0.7, 0.0, a]});
+                                    color: [s, 0.7, -s, alpha]})}
         
-            //UP
-                voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / RES - 0.5, (y as f32 + 1.0) / RES - 0.5, (z as f32 + 0.5) / RES - 0.5),
+            //Y
+                if ignore.1 == false {voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / resolution - 0.5, (y as f32 + 0.5 + 0.5 * bias.1) / resolution - 0.5, (z as f32 + 0.5) / resolution - 0.5),
                                     rotation: Quaternion::new(0.0, 0.0, 0.0, 0.0),
-                                    color: [1.0, 0.7, 0.0, a]});
+                                    color: [s, 0.7, -s, alpha]})}
 
-            //FRONT
-                voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / RES - 0.5, (y as f32 + 0.5) / RES - 0.5, (z as f32 + 1.0) / RES - 0.5),
+            //Z
+                if ignore.2 == false {voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / resolution - 0.5, (y as f32 + 0.5) / resolution - 0.5, (z as f32 + 0.5 + 0.5 * bias.2) / resolution - 0.5),
                                     rotation: Quaternion::from_axis_angle(Vector3::unit_x(), Deg(90.0)),
-                                    color: [1.0, 0.7, 0.0, a]});
-
-            
-        //Three secondary faces: negative x, y, z. 
-        //These are only instantiated when the negative neighboring coordinate doesn't have a primary face already
-        //(so, when the negative neighbour is empty).
-            //LEFT
-                match x_faces.binary_search(&(x - 1, y, z)) {
-                    Ok(_) => {}
-
-                    Err(_) => {
-                        voxels.push(Instance{position: Vector3::new((x as f32) / RES - 0.5, (y as f32 + 0.5) / RES - 0.5, (z as f32 + 0.5) / RES - 0.5),
-                                rotation: Quaternion::from_axis_angle(Vector3::unit_z(), Deg(90.0)),
-                                color: [1.0, 0.7, 0.0, a]});
-                    }
-                } 
-
-            //DOWN
-                match y_faces.binary_search(&(y - 1, z)) {
-                    Ok(_) => {}
-
-                    Err(_) => {
-                        voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / RES - 0.5, (y as f32) / RES - 0.5, (z as f32 + 0.5) / RES - 0.5),
-                                rotation: Quaternion::new(0.0, 0.0, 0.0, 0.0),
-                                color: [1.0, 0.7, 0.0, a]});
-                    }
-                }
-
-            //BACK
-                if z_face == false{
-                        voxels.push(Instance{position: Vector3::new((x as f32 + 0.5) / RES - 0.5, (y as f32 + 0.5) / RES - 0.5, (z as f32) / RES - 0.5),
-                                rotation: Quaternion::from_axis_angle(Vector3::unit_x(), Deg(90.0)),
-                                color: [1.0, 0.7, 0.0, a]});
-                }
-                
-
+                                    color: [s, 0.7, -s, alpha]})}
         return voxels;
     }

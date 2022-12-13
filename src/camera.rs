@@ -2,7 +2,7 @@ use cgmath::{Point3, Rad, Matrix4, Vector3, InnerSpace, perspective, SquareMatri
 use instant::Duration;
 use winit::{event::{ElementState, MouseScrollDelta, MouseButton}, dpi::PhysicalPosition};
 
-#[rustfmt::skip] //Translation from OpenGL viewing matrix format to WGPU's format
+#[rustfmt::skip] //Translation from OpenGL's viewing matrix format to WGPU's format
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
@@ -10,7 +10,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     0.0, 0.0, 0.5, 1.0,
 );
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Camera {
     pub position: Point3<f32>,
     pub target: Point3<f32>,
@@ -127,23 +127,22 @@ impl CameraController {
 //Get Camera'd!!!
     pub fn update_camera(&mut self, camera: &mut Camera, dt: Duration) {
         
-        let _dt = dt.as_secs_f32();
+        let dt = dt.as_secs_f32();
         let fwd = camera.position - camera.target;
         let fwd_nor =fwd.normalize();
-
-    //YAW
     
         let current_mag = fwd.magnitude();
 
+    //ROTATION
         //Rotates a unit vector around the y axis
-        let next_pos_h = Quaternion::new(0.707 * self.sensitivity * self.horizontal, 0.0, 1.0, 0.0) * fwd_nor;
+        let next_pos_h = Quaternion::new(self.sensitivity * self.horizontal, 0.0, 1.0, 0.0).normalize() * fwd * dt;
 
         //Rotates a unit vector around the axis perpendicular to the view
-        //The ifs make sure you stay from 5 to 175 degrees – things get whacky at the poles and we don't want that
-        let next_pos_v = if fwd.angle(Vector3::unit_y()) >= Deg(5.0).into() && self.vertical >= 0.0 {
-            Quaternion::new(-0.707 * self.vertical * self.sensitivity, fwd_nor.cross(Vector3::unit_y()).normalize().x, 0.0, fwd_nor.cross(Vector3::unit_y()).normalize().z) * fwd_nor
-        } else if fwd.angle(Vector3::unit_y()) <= Deg(175.0).into() && self.vertical <= 0.0 {
-            Quaternion::new(-0.707 * self.vertical * self.sensitivity, fwd_nor.cross(Vector3::unit_y()).normalize().x, 0.0, fwd_nor.cross(Vector3::unit_y()).normalize().z) * fwd_nor
+        //The ifs make sure you stay from 10 to 170 degrees – things get whacky at the poles and we don't want that
+        let next_pos_v = if fwd.angle(Vector3::unit_y()) >= Deg(10.0).into() && self.vertical >= 0.0 {
+            Quaternion::new(-self.vertical * self.sensitivity, fwd_nor.cross(Vector3::unit_y()).normalize().x, 0.0, fwd_nor.cross(Vector3::unit_y()).normalize().z).normalize() * fwd * dt
+        } else if fwd.angle(Vector3::unit_y()) <= Deg(170.0).into() && self.vertical <= 0.0 {
+            Quaternion::new(-self.vertical * self.sensitivity, fwd_nor.cross(Vector3::unit_y()).normalize().x, 0.0, fwd_nor.cross(Vector3::unit_y()).normalize().z).normalize() * fwd * dt
         } else {-fwd_nor};
         
         //This combines vertical and horizontal rotation. Horizontal's y component is flipped so it doesn't break
@@ -155,17 +154,17 @@ impl CameraController {
     //TRANSLATION
 
         //Moves both the camera and the target in an axis perpendicular to the view
-        camera.position += self.horizontal * self.speed * self.is_middle_pressed * (fwd_nor.cross(Vector3::unit_y())).normalize() * fwd.magnitude();
-        camera.target += self.horizontal * self.speed * self.is_middle_pressed * (fwd_nor.cross(Vector3::unit_y())).normalize() * fwd.magnitude();
+        camera.position += self.horizontal * self.speed * self.is_middle_pressed * (fwd_nor.cross(Vector3::unit_y())).normalize() * fwd.magnitude() * dt;
+        camera.target += self.horizontal * self.speed * self.is_middle_pressed * (fwd_nor.cross(Vector3::unit_y())).normalize() * fwd.magnitude() * dt;
 
         //Moves both the camera and the target in the y axis
-        camera.position.y += self.vertical * self.speed * self.is_middle_pressed * fwd.magnitude();
-        camera.target.y += self.vertical * self.speed * self.is_middle_pressed * fwd.magnitude();
+        camera.position.y += self.vertical * self.speed * self.is_middle_pressed * fwd.magnitude() * dt;
+        camera.target.y += self.vertical * self.speed * self.is_middle_pressed * fwd.magnitude() * dt;
 
     //ZOOM
 
-        //The ifs make sure you don't go too far –20 units max– or too close –1 unit min–
-        if fwd.magnitude() < 20.0 && self.scroll > 0.0 {camera.position += fwd_nor * self.scroll * self.scroll_sensitivity} else if fwd.magnitude() > 1.0  && self.scroll < 0.0 {camera.position += fwd_nor * self.scroll * self.scroll_sensitivity} else {};
+        //The ifs make sure you don't go too far –20 units max– or too close –2 unit min–
+        if fwd.magnitude() < 20.0 && self.scroll > 0.0 {camera.position += fwd_nor * self.scroll * self.scroll_sensitivity} else if fwd.magnitude() > 2.0  && self.scroll < 0.0 {camera.position += fwd_nor * self.scroll * self.scroll_sensitivity} else {};
         
     //RESETTING VARIABLES
         self.scroll = 0.0;    

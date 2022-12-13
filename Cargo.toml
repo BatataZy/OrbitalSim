@@ -1,5 +1,14 @@
+[package.metadata.bundle]
+name = "OrbitalSimulator"
+identifier = "com.example.orbitalsimulator"
+
+
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"
+
 [package]
 name = "orbital_sim"
+description = "This is an Orbital Simulator"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,22 +18,16 @@ edition = "2021"
 time = "0.3.17"
 instant = "0.1.12"
 cgmath = "0.18.0"
-bytemuck = {version = "1.12.1", features = ["derive"]}
+bytemuck = {version = "1.12.3", features = ["derive"]}
 pollster = "0.2.5"
-wgpu = "0.14.0"
-env_logger = "0.9.3"
+env_logger = "0.10.0"
 winit = "0.27.5"
 log = "0.4.16"
-rayon = "1.6.0"
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
+egui = "0.19.0"
+egui-wgpu = "0.19.0"
+egui_winit_platform = "0.16.0"
+
+console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
-wgpu = { version = "0.14", features = ["webgl"]}
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
-    "Document",
-    "Window",
-    "Element",
-]}
+
