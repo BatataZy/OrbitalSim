@@ -1,9 +1,9 @@
 # Orbital Simulation
 A tool that simulates the shape and characteristics of atomic orbitals.
-![preview image](branding/preview.png)
+![preview image](images/preview.png)
 
 It features an integrated GUI from which you can change the simulation:
-![gui](branding/gui.png)
+![gui](images/gui.png)
 
 ## License
 OrbitalSim is free and open-source. All of the code is dual-licensed under:
