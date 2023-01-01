@@ -47,7 +47,7 @@ struct State {
     instance_buffer: Buffer,
     current_resolution: f32,
     current_bohr: f32,
-    ddt: f32,
+    last_dt: (Vec<f32>, usize),
 
     orbital_array: Vec<Orbital>,
 }
@@ -57,7 +57,7 @@ impl State {
     async fn new(window: &Window) -> Self {
 
     //Input variables - this values work well enough for my taste
-        let speed = 0.035;
+        let speed = 0.055;
         let sensitivity = 0.006;
         let scroll_sensitivity = 0.009;
 
@@ -233,8 +233,6 @@ impl State {
             usage: wgpu::BufferUsages::VERTEX,
         });
 
-        let ddt = 0.0;
-
         Self {
             surface,
             device,
@@ -263,7 +261,7 @@ impl State {
             instance_buffer,
             current_resolution: 5.0,
             current_bohr: 0.25,
-            ddt,
+            last_dt: (vec![0.016; 6], 0),
 
             orbital_array: vec![],
         }
@@ -297,20 +295,21 @@ impl State {
     }
 
 //UPDATE FUNCTION - Called every frame, updates processes
-    fn update(&mut self, gui_app: &Guindow, dt: std::time::Duration) {
+    fn update(&mut self, gui_app: &Guindow, dt: f32) {
 
-        self.ddt += dt.as_secs_f32();
+    //
+        self.last_dt.0[self.last_dt.1] = dt;
+        self.last_dt.1 = (self.last_dt.1 + 1) % 6;
+        let average_dt: f32 = self.last_dt.0.clone().into_iter().sum::<f32>() / 6.0;
 
     //Update to the camera controller & view
-        self.camera_controller.update_camera(&mut self.camera, dt);
+        self.camera_controller.update_camera(&mut self.camera, average_dt);
         self.camera_uniform.update_view_proj(&self.camera);
         self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
         self.orbital_array = gui_app.orbitals.clone();
     
-    println!("{:?}", self.function_index);
     //Update to all the render logic
             if self.function_index == (-LENGTH) * self.current_resolution as i16 - 1 {
-                println!("A");
                 self.current_resolution = gui_app.resolution;
                 self.current_bohr = 1.0 / gui_app.size * 1.5;
                 self.instance_camera = self.camera;
@@ -347,8 +346,6 @@ impl State {
                     contents: bytemuck::cast_slice(&self.instance_data) ,
                     usage: wgpu::BufferUsages::VERTEX,
                 });
-
-                self.ddt = 0.0;
             }
 
         //Good ol' variable reset - makes the loop start again
@@ -575,7 +572,7 @@ impl GuiState {
                     let dt = now - last_render_time;
                     last_render_time = now;
 
-                    state.update(&gui_app, dt,);
+                    state.update(&gui_app, dt.as_secs_f32());
                     log::log!(log::Level::Info,"{:?}", state.camera.position);
                 }
 

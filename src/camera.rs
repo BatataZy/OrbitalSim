@@ -1,5 +1,4 @@
 use cgmath::{Point3, Rad, Matrix4, Vector3, InnerSpace, perspective, SquareMatrix, Quaternion, Deg};
-use instant::Duration;
 use winit::{event::{ElementState, MouseScrollDelta, MouseButton}, dpi::PhysicalPosition};
 
 #[rustfmt::skip] //Translation from OpenGL's viewing matrix format to WGPU's format
@@ -125,9 +124,8 @@ impl CameraController {
     }
 
 //Get Camera'd!!!
-    pub fn update_camera(&mut self, camera: &mut Camera, dt: Duration) {
+    pub fn update_camera(&mut self, camera: &mut Camera, dt: f32) {
         
-        let dt = dt.as_secs_f32();
         let fwd = camera.position - camera.target;
         let fwd_nor =fwd.normalize();
     
@@ -153,13 +151,13 @@ impl CameraController {
 
     //TRANSLATION
 
-        //Moves both the camera and the target in an axis perpendicular to the view
+        //Moves both the camera and the target in an horizontal axis perpendicular to the view
         camera.position += self.horizontal * self.speed * self.is_middle_pressed * (fwd_nor.cross(Vector3::unit_y())).normalize() * fwd.magnitude() * dt;
         camera.target += self.horizontal * self.speed * self.is_middle_pressed * (fwd_nor.cross(Vector3::unit_y())).normalize() * fwd.magnitude() * dt;
 
-        //Moves both the camera and the target in the y axis
-        camera.position.y += self.vertical * self.speed * self.is_middle_pressed * fwd.magnitude() * dt;
-        camera.target.y += self.vertical * self.speed * self.is_middle_pressed * fwd.magnitude() * dt;
+        //Moves both the camera and the target in a vertical axis perpendicular to the view
+        camera.position -= self.vertical * self.speed * self.is_middle_pressed * (fwd_nor.cross(fwd_nor.cross(Vector3::unit_y())).normalize()).normalize() * fwd.magnitude() * dt;
+        camera.target -= self.vertical * self.speed * self.is_middle_pressed * (fwd_nor.cross(fwd_nor.cross(Vector3::unit_y())).normalize()).normalize() * fwd.magnitude() * dt;
 
     //ZOOM
 
