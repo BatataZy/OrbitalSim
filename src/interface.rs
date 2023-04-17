@@ -50,16 +50,16 @@ impl Gui for Guindow {
 
     //Creates all text styles – their size is proportional to the monitor resolution, so they should look fine in every device.
         let mut style = (*ctx.style()).clone();
-        style.text_styles = [(TextStyle::Heading, FontId::new(self.window_size.1 / 15.0, Proportional)),
-        (TextStyle::Name("Heading2".into()), FontId::new(self.window_size.1 / 20.0, Proportional)),
+        style.text_styles = [(TextStyle::Heading, FontId::new((self.window_size.1) / 15.0 / self.scale_factor, Proportional)),
+        (TextStyle::Name("Heading2".into()), FontId::new((self.window_size.1) / 20.0 / self.scale_factor, Proportional)),
         (TextStyle::Name("Context".into()), FontId::new(23.0, Proportional)),
-        (TextStyle::Name("Play Button".into()), FontId::new(self.window_size.1 / 10.0, egui::FontFamily::Proportional)),
-        (TextStyle::Name("Reload Button".into()), FontId::new(self.window_size.1 / 12.0, egui::FontFamily::Proportional)),
-        (TextStyle::Name("Input".into()), FontId::new(self.window_size.1 / 28.0, egui::FontFamily::Monospace)),
-        (TextStyle::Body, FontId::new(self.window_size.1 / 28.0, Proportional)),
-        (TextStyle::Monospace, FontId::new(self.window_size.1 / 40.0, egui::FontFamily::Monospace)),
-        (TextStyle::Button, FontId::new(self.window_size.1 / 21.0, egui::FontFamily::Monospace)),
-        (TextStyle::Small, FontId::new(self.window_size.1 / 40.0, Proportional)),].into();
+        (TextStyle::Name("Play Button".into()), FontId::new((self.window_size.1) / 10.0 / self.scale_factor, egui::FontFamily::Proportional)),
+        (TextStyle::Name("Reload Button".into()), FontId::new((self.window_size.1) / 12.0 / self.scale_factor, egui::FontFamily::Proportional)),
+        (TextStyle::Name("Input".into()), FontId::new((self.window_size.1) / 28.0 / self.scale_factor, egui::FontFamily::Monospace)),
+        (TextStyle::Body, FontId::new((self.window_size.1) / 28.0 / self.scale_factor, Proportional)),
+        (TextStyle::Monospace, FontId::new((self.window_size.1) / 40.0 / self.scale_factor, egui::FontFamily::Monospace)),
+        (TextStyle::Button, FontId::new((self.window_size.1) / 21.0 / self.scale_factor, egui::FontFamily::Monospace)),
+        (TextStyle::Small, FontId::new((self.window_size.1) / 40.0 / self.scale_factor, Proportional)),].into();
 
         //self.window_size == MonitorHandle::scale_factor(&self);
 
@@ -86,7 +86,7 @@ impl Gui for Guindow {
                     //Resolution
                         //Creates a Drag value to input a new resolution
                         ui.label(RichText::new("Resolution: ").text_style(TextStyle::Body));
-                        ui.add(egui::DragValue::new(&mut self.new_resolution).speed(0.0).fixed_decimals(0));
+                        ui.add(egui::DragValue::new(&mut self.new_resolution).speed(0.1).fixed_decimals(0));
 
                         //This creates a upper and lower limit on resolution
                         if self.new_resolution > 11.0 {self.new_resolution = 11.0} else if self.new_resolution < 2.0 {self.new_resolution = 2.0}
@@ -103,7 +103,7 @@ impl Gui for Guindow {
                     //Size
                         //Creates a Drag value to input a new size
                         ui.label(RichText::new("Size: ").text_style(TextStyle::Body));
-                        ui.add(egui::DragValue::new(&mut self.new_size).speed(0.0).fixed_decimals(0));
+                        ui.add(egui::DragValue::new(&mut self.new_size).speed(0.1).fixed_decimals(0));
 
                         //This creates a upper and lower limit on size
                         if self.new_size > 20.0 {self.new_size = 20.0} else if self.new_size < 1.0 {self.new_size = 1.0}
@@ -114,19 +114,18 @@ impl Gui for Guindow {
 
                         //Displays current size
                         ui.label(String::from("(Current: ") + &self.size.to_string() + ")");
-                        
                     });
                 });
-
                 ui.separator();
 
-                ui.put(self.recter(0.2, 0.345, 0.3, 0.08), egui::Label::new(
+                ui.put(self.recter(0.2, 0.30, 0.3, 0.08), egui::Label::new(
                     RichText::new("Orbitals").text_style(TextStyle::Name("Heading2".into()))));
                 
             //Orbitals menu
-                ui.allocate_ui_at_rect(self.recter(0.5, 0.68, 0.8, 0.59), |ui| {
-                    ScrollArea::vertical().always_show_scroll(false)
-                    .max_height(self.window_size.1 / (1.0 / 0.55)).show(ui, |ui| {
+                ui.allocate_ui_at_rect(self.recter(0.5, 0.575, 0.82, 0.45), |ui| {
+                    ScrollArea::vertical().always_show_scroll(false).auto_shrink([false; 2])
+                    .max_height((self.window_size.1 + 100.0) / (1.0 / 0.55))
+                    .show(ui, |ui| {
                     
                     //This creates a collapsing header with info for each orbital
                         self.orbitals.clone().iter().enumerate().for_each(|orbital| {
@@ -145,7 +144,7 @@ impl Gui for Guindow {
                                 });
                             }).body(|ui| {
                             //Inside the collapsing header: creates a menu from which you can change the orbital's parameters.
-                                egui::Grid::new(String::from("grid ") + id).striped(true).show(ui, |ui| {
+                                egui::Grid::new(String::from("grid ") + id).striped(true).min_col_width(self.window_size.0 / (1.0 / 0.7)).min_row_height(self.window_size.1 / 20.0 / self.scale_factor).show(ui, |ui| {
                                     
                                 //This creates a graph that matches the selected orbital
                                     ui.collapsing(RichText::new("Graph: ").text_style(TextStyle::Small), |ui|{
@@ -179,10 +178,9 @@ impl Gui for Guindow {
                                     ui.horizontal( |ui| {
                                         ui.small(RichText::new("Position: ").family(FontFamily::Monospace));
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.x).speed(0.01).max_decimals(1).suffix(" Å"));
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.y).speed(0.01).max_decimals(1).suffix(" Å"));
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.z).speed(0.01).max_decimals(1).suffix(" Å"));
-                                        ui.label("        ");
+                                        ui.add(egui::DragValue::new(&mut self.orbitals[orbital.0].position.x).speed(0.01).max_decimals(1).suffix(" Å"));
+                                        ui.add(egui::DragValue::new(&mut self.orbitals[orbital.0].position.y).speed(0.01).max_decimals(1).suffix(" Å"));
+                                        ui.add(egui::DragValue::new(&mut self.orbitals[orbital.0].position.z).speed(0.01).max_decimals(1).suffix(" Å"));
                                     });
                                     ui.end_row();
 
@@ -190,15 +188,15 @@ impl Gui for Guindow {
                                     ui.horizontal( |ui|{
                                         ui.small(RichText::new("Rotation: ").family(FontFamily::Monospace));
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.0).speed(1).max_decimals(1).suffix("°"));
+                                        ui.add(egui::DragValue::new(&mut self.orbitals[orbital.0].euler.0).speed(1).max_decimals(1).suffix("°"));
                                             if self.orbitals[orbital.0].euler.0 >= 360.0 {self.orbitals[orbital.0].euler.0 = self.orbitals[orbital.0].euler.0 % 360.0}
                                             else if self.orbitals[orbital.0].euler.0 < 0.0 {self.orbitals[orbital.0].euler.0 = self.orbitals[orbital.0].euler.0 % 360.0 + 360.0}
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.1).speed(1).max_decimals(1).suffix("°"));
+                                        ui.add(egui::DragValue::new(&mut self.orbitals[orbital.0].euler.1).speed(1).max_decimals(1).suffix("°"));
                                             if self.orbitals[orbital.0].euler.1 >= 360.0 {self.orbitals[orbital.0].euler.1 = self.orbitals[orbital.0].euler.1 % 360.0}
                                             else if self.orbitals[orbital.0].euler.1 < 0.0 {self.orbitals[orbital.0].euler.1 = self.orbitals[orbital.0].euler.1 % 360.0 + 360.0}
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.2).speed(1).max_decimals(1).suffix("°"));
+                                        ui.add(egui::DragValue::new(&mut self.orbitals[orbital.0].euler.2).speed(1).max_decimals(1).suffix("°"));
                                             if self.orbitals[orbital.0].euler.2 >= 360.0 {self.orbitals[orbital.0].euler.2 = self.orbitals[orbital.0].euler.2 % 360.0}
                                             else if self.orbitals[orbital.0].euler.2 < 0.0 {self.orbitals[orbital.0].euler.2 = self.orbitals[orbital.0].euler.2 % 360.0 + 360.0}
 
@@ -226,15 +224,15 @@ impl Gui for Guindow {
                                                     ui.small(RichText::new("Magnetic: ").family(FontFamily::Monospace));
                                                     
                                                     //px orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("x").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add( egui::Button::new(egui::RichText::new(" x ").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].euler = (0.0, 0.0, 0.0)}
                                                     
                                                     //py orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("y").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new(" y ").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].euler = (0.0, 90.0, 0.0)}
 
                                                     //pz orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("z").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new(" z ").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].euler = (90.0, 0.0, 0.0)}
                                                 });
 
@@ -244,27 +242,27 @@ impl Gui for Guindow {
                                                     ui.small(RichText::new("Magnetic: ").family(FontFamily::Monospace));
                                                 
                                                     //dz2 orbital – this one is the weird one
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("z²").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new("z²").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].magnetic = 0;
                                                         self.orbitals[orbital.0].euler = (0.0, 0.0, 0.0)}
 
                                                     //dxy orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("xy").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new("xy").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].magnetic = 1;
                                                         self.orbitals[orbital.0].euler = (0.0, 0.0, 0.0)}
 
                                                     //dxz orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("xz").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new("xz").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].magnetic = 1;
                                                         self.orbitals[orbital.0].euler = (90.0, 0.0, 90.0)}
 
                                                     //dyz orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("yz").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new("yz").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].magnetic = 1;    
                                                         self.orbitals[orbital.0].euler = (90.0, 90.0, 0.0)}
 
                                                     //dx2-y2 orbital
-                                                    if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(egui::RichText::new("x²-y²").text_style(TextStyle::Monospace))).clicked() {
+                                                    if ui.add(egui::Button::new(egui::RichText::new("x²-y²").text_style(TextStyle::Monospace))).clicked() {
                                                         self.orbitals[orbital.0].magnetic = 1;    
                                                         self.orbitals[orbital.0].euler = (135.0, 0.0, 0.0)}
                                                 });
@@ -278,13 +276,14 @@ impl Gui for Guindow {
                                 //Phase row – Here you change the orbital's phase with a button, nothing special
                                     ui.horizontal(|ui| {
                                         ui.small(RichText::new("Phase:    ").family(FontFamily::Monospace));
-                                        if ui.add_sized(self.vecter(0.08, 0.04), egui::Button::new(if self.orbitals[orbital.0].phase == true {egui::RichText::new("+").text_style(TextStyle::Monospace)} else {egui::RichText::new("-").text_style(TextStyle::Monospace)})).clicked() {
+                                        if ui.add(egui::Button::new(if self.orbitals[orbital.0].phase == true {egui::RichText::new(" + ").text_style(TextStyle::Monospace)} else {egui::RichText::new(" - ").text_style(TextStyle::Monospace)})).clicked() {
                                             self.orbitals[orbital.0].phase = !self.orbitals[orbital.0].phase;
                                     }});
 
                                     ui.end_row();
                                 })
                             });
+                            ui.add_space(self.window_size.1 / 30.0 / self.scale_factor)
                         });
                     });
                 });
@@ -304,15 +303,15 @@ impl Gui for Guindow {
     fn recter (&mut self, x_pos: f32, y_pos: f32, x_size: f32, y_size: f32) -> Rect {
         let rectangle: Rect;
         rectangle = Rect::from_center_size(
-            egui::pos2(self.window_size.0 / (1.0 / x_pos) / self.scale_factor, self.window_size.1 / (1.0 / y_pos) / self.scale_factor),
-            Vec2::new(self.window_size.0 / (1.0 / x_size) / self.scale_factor, self.window_size.1 / (1.0 / y_size) / self.scale_factor)
+            egui::pos2(self.window_size.0 / (1.0 / x_pos) / self.scale_factor, (self.window_size.1 + 100.0) / (1.0 / y_pos) / self.scale_factor),
+            Vec2::new(self.window_size.0 / (1.0 / x_size) / self.scale_factor, (self.window_size.1 + 100.0) / (1.0 / y_size) / self.scale_factor)
         );
         return rectangle;
     }
 //VECTER – Like the RECTER, except this only needs a size input
     fn vecter (&mut self, x_size: f32, y_size: f32) -> Vec2 {
         let size: Vec2;
-        size = Vec2::new(self.window_size.0 / (1.0 / x_size) / self.scale_factor, self.window_size.1 / (1.0 / y_size) / self.scale_factor);
+        size = Vec2::new(self.window_size.0 / (1.0 / x_size) / self.scale_factor, (self.window_size.1 + 100.0) / (1.0 / y_size) / self.scale_factor);
         return size;
     }
 }
