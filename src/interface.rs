@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 
 use cgmath::{Vector3};
 use egui::{Context, Vec2, FontId, FontFamily::{Proportional, self}, TextStyle, Rect, ScrollArea, RichText, Id, collapsing_header::CollapsingState, plot::{PlotPoints, Line}};
-use winit::{window::Window};
+use winit::{window::{Window}};
 
 use crate::{orbitals::{ALLOWED_ORBITALS, Orbital, self, orbital_to_name}};
 
@@ -12,6 +12,7 @@ pub struct Guindow {
     pub enabled: bool,
 
     pub window_size: (f32, f32),
+    pub scale_factor: f32,
 
     pub new_resolution: f32,
     pub resolution: f32,
@@ -35,9 +36,10 @@ pub trait Gui {
 impl Guindow {
     pub fn new(window: &Window) -> Self {
         let window_size = (window.inner_size().width as f32, window.inner_size().height as f32);
+        let scale_factor = window.scale_factor() as f32;
         let orbitals = vec![orbitals::Orbital::new(Vector3::new(0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0, 0), 0,true); 2];
 
-        Self {window_size, orbitals, enabled: false, size: 6.0, new_size: 6.0, new_resolution: 5.0, resolution: 5.0, status: false, submit_success: false}
+        Self {window_size, scale_factor, orbitals, enabled: false, size: 6.0, new_size: 6.0, new_resolution: 5.0, resolution: 5.0, status: false, submit_success: false}
     }
 }
 impl Gui for Guindow {
@@ -46,7 +48,7 @@ impl Gui for Guindow {
     }
     fn show(&mut self, ctx: &Context) {
 
-    //Creates all text styles – their size is proportional to the monitor resolution, so they should loox fine in every device.
+    //Creates all text styles – their size is proportional to the monitor resolution, so they should look fine in every device.
         let mut style = (*ctx.style()).clone();
         style.text_styles = [(TextStyle::Heading, FontId::new(self.window_size.1 / 15.0, Proportional)),
         (TextStyle::Name("Heading2".into()), FontId::new(self.window_size.1 / 20.0, Proportional)),
@@ -58,6 +60,8 @@ impl Gui for Guindow {
         (TextStyle::Monospace, FontId::new(self.window_size.1 / 40.0, egui::FontFamily::Monospace)),
         (TextStyle::Button, FontId::new(self.window_size.1 / 21.0, egui::FontFamily::Monospace)),
         (TextStyle::Small, FontId::new(self.window_size.1 / 40.0, Proportional)),].into();
+
+        //self.window_size == MonitorHandle::scale_factor(&self);
 
     //Updates the play button
         //let status_symbol: char;
@@ -175,9 +179,9 @@ impl Gui for Guindow {
                                     ui.horizontal( |ui| {
                                         ui.small(RichText::new("Position: ").family(FontFamily::Monospace));
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.x).speed(0).max_decimals(1).suffix(" Å"));
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.y).speed(0).max_decimals(1).suffix(" Å"));
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.z).speed(0).max_decimals(1).suffix(" Å"));
+                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.x).speed(0.01).max_decimals(1).suffix(" Å"));
+                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.y).speed(0.01).max_decimals(1).suffix(" Å"));
+                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].position.z).speed(0.01).max_decimals(1).suffix(" Å"));
                                         ui.label("        ");
                                     });
                                     ui.end_row();
@@ -186,15 +190,15 @@ impl Gui for Guindow {
                                     ui.horizontal( |ui|{
                                         ui.small(RichText::new("Rotation: ").family(FontFamily::Monospace));
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.0).speed(0).max_decimals(1).suffix("°"));
+                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.0).speed(1).max_decimals(1).suffix("°"));
                                             if self.orbitals[orbital.0].euler.0 >= 360.0 {self.orbitals[orbital.0].euler.0 = self.orbitals[orbital.0].euler.0 % 360.0}
                                             else if self.orbitals[orbital.0].euler.0 < 0.0 {self.orbitals[orbital.0].euler.0 = self.orbitals[orbital.0].euler.0 % 360.0 + 360.0}
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.1).speed(0).max_decimals(1).suffix("°"));
+                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.1).speed(1).max_decimals(1).suffix("°"));
                                             if self.orbitals[orbital.0].euler.1 >= 360.0 {self.orbitals[orbital.0].euler.1 = self.orbitals[orbital.0].euler.1 % 360.0}
                                             else if self.orbitals[orbital.0].euler.1 < 0.0 {self.orbitals[orbital.0].euler.1 = self.orbitals[orbital.0].euler.1 % 360.0 + 360.0}
 
-                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.2).speed(0).max_decimals(1).suffix("°"));
+                                        ui.add_sized(self.vecter(0.05, 0.04), egui::DragValue::new(&mut self.orbitals[orbital.0].euler.2).speed(1).max_decimals(1).suffix("°"));
                                             if self.orbitals[orbital.0].euler.2 >= 360.0 {self.orbitals[orbital.0].euler.2 = self.orbitals[orbital.0].euler.2 % 360.0}
                                             else if self.orbitals[orbital.0].euler.2 < 0.0 {self.orbitals[orbital.0].euler.2 = self.orbitals[orbital.0].euler.2 % 360.0 + 360.0}
 
@@ -300,15 +304,15 @@ impl Gui for Guindow {
     fn recter (&mut self, x_pos: f32, y_pos: f32, x_size: f32, y_size: f32) -> Rect {
         let rectangle: Rect;
         rectangle = Rect::from_center_size(
-            egui::pos2(self.window_size.0 / (1.0 / x_pos), self.window_size.1 / (1.0 / y_pos)),
-            Vec2::new(self.window_size.0 / (1.0 / x_size), self.window_size.1 / (1.0 / y_size))
+            egui::pos2(self.window_size.0 / (1.0 / x_pos) / self.scale_factor, self.window_size.1 / (1.0 / y_pos) / self.scale_factor),
+            Vec2::new(self.window_size.0 / (1.0 / x_size) / self.scale_factor, self.window_size.1 / (1.0 / y_size) / self.scale_factor)
         );
         return rectangle;
     }
 //VECTER – Like the RECTER, except this only needs a size input
     fn vecter (&mut self, x_size: f32, y_size: f32) -> Vec2 {
         let size: Vec2;
-        size = Vec2::new(self.window_size.0 / (1.0 / x_size), self.window_size.1 / (1.0 / y_size));
+        size = Vec2::new(self.window_size.0 / (1.0 / x_size) / self.scale_factor, self.window_size.1 / (1.0 / y_size) / self.scale_factor);
         return size;
     }
 }

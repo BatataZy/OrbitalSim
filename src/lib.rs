@@ -186,7 +186,7 @@ impl State {
             multisample: wgpu::MultisampleState {
                 count: 1,
                 mask: !0,
-                alpha_to_coverage_enabled: true,
+                alpha_to_coverage_enabled: false,
             },
 
             fragment: Some(wgpu::FragmentState {
@@ -321,22 +321,22 @@ impl State {
 
         //This calls the function to create the instances
         //it spends how many frames it needs to render it all while not causing overhead
-            if self.function_index < (LENGTH + 1) * self.current_resolution as i16 {
+            if self.function_index < (LENGTH) * self.current_resolution as i16 {
 
-                let mut instancing_result = function::orbital(self.current_resolution, 1.0 / gui_app.size * 1.5, self.function_index, &self.orbital_array, &self.instance_camera);
+                let mut instancing_result = function::orbital(self.current_resolution, self.current_bohr, self.function_index, &self.orbital_array, &self.instance_camera);
 
                 self.new_instances.append(&mut instancing_result.0);
                 self.function_index = instancing_result.1;
             }
 
         //This collects all the instances and makes it so the instance buffer understands it (shader magic, don't ask)
-            if self.function_index == (LENGTH + 1) * self.current_resolution as i16 + 1 {
+            if self.function_index == (LENGTH) * self.current_resolution as i16 + 1 {
 
                 self.instance_data = self.new_instances.iter().map(instance::Instance::to_raw).collect::<Vec<_>>();
             }
 
         //Commits all the previously collected data to the instance buffer, ready to be rendered
-            if self.function_index == (LENGTH + 1) * self.current_resolution as i16 + 1 {
+            if self.function_index == (LENGTH) * self.current_resolution as i16 + 1 {
 
                 self.instances.clear();
                 self.instances.append(&mut self.new_instances);
@@ -349,11 +349,11 @@ impl State {
             }
 
         //Good ol' variable reset - makes the loop start again
-            if self.function_index == (LENGTH + 1) * self.current_resolution as i16 + 1 {self.function_index = (-LENGTH) * self.current_resolution as i16 - 1;}
+            if self.function_index == (LENGTH) * self.current_resolution as i16 + 1 {self.function_index = (-LENGTH) * self.current_resolution as i16 - 1;}
 
         //This is here to prevent that the code instances the last pass and collects the data in the same frame
         //Basically to make it so it runs more consistently
-            if self.function_index == (LENGTH + 1) * self.current_resolution as i16 {
+            if self.function_index == (LENGTH) * self.current_resolution as i16 {
                 self.function_index += 1;
             }
     }

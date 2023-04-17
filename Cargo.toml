@@ -31,3 +31,6 @@ egui_winit_platform = "0.16.0"
 console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
 
+[build-dependencies]
+winres = "0.1.12"
+

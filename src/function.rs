@@ -21,9 +21,9 @@ use crate::instance;
         let start = Instant::now();
 
     //Instancing loop – checks every possible coordinate and decides whether to create a voxel or not
-        ((function_index + 1)..=((LENGTH + 1) * resolution as i16)).try_for_each (|a| {
-        ((-LENGTH * resolution as i16)..=((LENGTH + 1) * resolution as i16)).try_for_each (|b| {
-        ((-LENGTH * resolution as i16)..=((LENGTH + 1) * resolution as i16)).try_for_each (|c| {
+        ((function_index + 1)..=((LENGTH) * resolution as i16)).try_for_each (|a| {
+        ((-LENGTH * resolution as i16)..=((LENGTH) * resolution as i16)).try_for_each (|b| {
+        ((-LENGTH * resolution as i16)..=((LENGTH) * resolution as i16)).try_for_each (|c| {
 
             let mut x = 0;
             let mut y = 0;
@@ -74,7 +74,7 @@ use crate::instance;
                 new_instances.append(&mut instance::instantiate(resolution, x, y, z, alpha, sign, bias, ignore));
             }
 
-        //Breakes the loop if it's taking too much, this way it can render things in multiple frames
+        //Breakes the loop if it's taking too long, this way it can render things in multiple frames
             let now = Instant::now();
             if now - start >= Duration::new(0, 14000000) && b == LENGTH * resolution as i16 && c == LENGTH * resolution as i16 {
                 None
@@ -147,8 +147,8 @@ use crate::instance;
                                                                                                                                           2.0 * y_rot * (w * j - i * k) - 2.0 * z_rot * (w * i + j * k)).powi(2) - 1.0));
                         } else {calc_array.push(n * core * (p * r).powi(2)
 
-                             * ((x_rot * (w.powi(2) - i.powi(2) - j.powi(2) + k.powi(2))) +
-                             2.0 * y_rot * (w * j - i * k) - 2.0 * z_rot * (w * i + j * k))
+                            * ((x_rot * (w.powi(2) - i.powi(2) - j.powi(2) + k.powi(2))) +
+                            2.0 * y_rot * (w * j - i * k) - 2.0 * z_rot * (w * i + j * k))
                             
                             * ((z_rot * (w.powi(2) - i.powi(2) + j.powi(2) - k.powi(2))) -
                             2.0 * y_rot * (w * k + i * j) + 2.0 * x_rot * (w * i - j * k)));
